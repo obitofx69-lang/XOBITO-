@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<title>ফিরে আসা ২.০</title>
+
+<style>
+:root{
+  --bg:#020617;
+  --card:rgba(255,255,255,0.06);
+  --text:#e2e8f0;
+  --muted:#94a3b8;
+  --accent:#7c3aed;
+  --error:#ef4444;
+  --border:rgba(255,255,255,0.12);
+}
+
+.light{
+  --bg:#f1f5f9;
+  --card:#ffffff;
+  --text:#0f172a;
+  --muted:#64748b;
+  --border:#e2e8f0;
+}
+
+*{margin:0;padding:0;box-sizing:border-box;font-family:Inter, sans-serif;}
+
+body{
+  background:radial-gradient(circle at top,#1e293b,transparent),var(--bg);
+  color:var(--text);
+  min-height:100vh;
+}
+
+/* HERO */
+.hero{
+  height:260px;
+  margin:15px;
+  border-radius:20px;
+  display:flex;
+  align-items:flex-end;
+  padding:25px;
+  background:
+  linear-gradient(to top,rgba(0,0,0,.7),transparent),
+  var(--cover,linear-gradient(135deg,#7c3aed,#0f172a));
+  background-size:cover;
+}
+
+.hero h1{font-size:34px;font-weight:800;}
+
+/* CARD */
+.card{
+  backdrop-filter:blur(18px);
+  background:var(--card);
+  margin:15px;
+  padding:28px;
+  border-radius:20px;
+  border:1px solid var(--border);
+}
+
+/* PROGRESS */
+.progress{
+  height:6px;
+  background:var(--border);
+  border-radius:10px;
+  overflow:hidden;
+  margin-bottom:25px;
+}
+
+.bar{
+  height:100%;
+  width:0%;
+  background:linear-gradient(90deg,#7c3aed,#22c55e);
+  transition:.4s;
+}
+
+/* FIELD */
+.field{
+  position:relative;
+  margin-bottom:22px;
+}
+
+input{
+  width:100%;
+  padding:16px;
+  border-radius:12px;
+  border:1px solid var(--border);
+  background:transparent;
+  color:var(--text);
+  outline:none;
+  transition:.2s;
+}
+
+input:focus{
+  border-color:var(--accent);
+  box-shadow:0 0 0 3px rgba(124,58,237,.2);
+}
+
+label{
+  position:absolute;
+  left:14px;
+  top:50%;
+  transform:translateY(-50%);
+  background:transparent;
+  padding:0 6px;
+  color:var(--muted);
+  transition:.2s;
+  pointer-events:none;
+}
+
+input:focus+label,
+input:not(:placeholder-shown)+label{
+  top:-8px;
+  font-size:12px;
+  color:var(--accent);
+  background:var(--card);
+}
+
+/* ERROR */
+.error{
+  font-size:12px;
+  color:var(--error);
+  margin-top:6px;
+  display:none;
+}
+
+/* BUTTON */
+button{
+  width:100%;
+  padding:14px;
+  border:none;
+  border-radius:12px;
+  background:linear-gradient(135deg,#7c3aed,#2563eb);
+  color:#fff;
+  font-weight:700;
+  cursor:pointer;
+  position:relative;
+}
+
+button.loading{
+  pointer-events:none;
+  opacity:.7;
+}
+
+button.loading::after{
+  content:"...";
+  position:absolute;
+  right:15px;
+}
+
+/* SUCCESS */
+.success{
+  display:none;
+  margin-top:15px;
+  color:#22c55e;
+}
+
+/* TOGGLE */
+.toggle{
+  position:fixed;
+  top:15px;
+  right:15px;
+  padding:10px 14px;
+  border-radius:10px;
+  border:1px solid var(--border);
+  cursor:pointer;
+}
+</style>
+</head>
+
+<body>
+
+<div class="toggle" onclick="toggleTheme()">Mode</div>
+
+<div class="hero" id="hero">
+  <h1>ফিরে আসা ২.০</h1>
+</div>
+
+<div class="card">
+
+<div class="progress"><div class="bar" id="bar"></div></div>
+
+<form id="form">
+
+<div class="field">
+<input id="name" placeholder=" " required>
+<label>শিক্ষার্থীর নাম</label>
+<div class="error" id="errName">নাম প্রয়োজন</div>
+</div>
+
+<div class="field">
+<input id="college" placeholder=" " required>
+<label>কলেজ</label>
+<div class="error" id="errCollege">কলেজ প্রয়োজন</div>
+</div>
+
+<div class="field">
+<input id="phone" placeholder=" " required>
+<label>মোবাইল নম্বর</label>
+<div class="error" id="errPhone">সঠিক নম্বর দিন (01XXXXXXXXX)</div>
+</div>
+
+<button id="btn">Submit</button>
+<div class="success" id="success">✔ Data submitted</div>
+
+</form>
+</div>
+
+<script>
+// COVER IMAGE
+const coverImageUrl="https://www.image2url.com/r2/default/images/1776750295841-aaabb37c-13b8-420a-bcff-fadf9a3b7296.jpg";
+if(coverImageUrl){
+document.getElementById("hero").style.setProperty("--cover",`url(${coverImageUrl})`);
+}
+
+// ELEMENTS
+const inputs=document.querySelectorAll("input");
+const bar=document.getElementById("bar");
+
+// SAVE DATA
+inputs.forEach(i=>{
+i.value=localStorage.getItem(i.id)||"";
+i.addEventListener("input",()=>{
+localStorage.setItem(i.id,i.value);
+update();
+});
+});
+
+function update(){
+let filled=0;
+inputs.forEach(i=>{if(i.value.trim())filled++;});
+bar.style.width=(filled/inputs.length)*100+"%";
+}
+update();
+
+// VALIDATION
+function validate(){
+let ok=true;
+
+// name
+if(!name.value.trim()){
+errName.style.display="block"; ok=false;
+}else errName.style.display="none";
+
+// college
+if(!college.value.trim()){
+errCollege.style.display="block"; ok=false;
+}else errCollege.style.display="none";
+
+// phone (BD format)
+if(!/^01[3-9]\d{8}$/.test(phone.value)){
+errPhone.style.display="block"; ok=false;
+}else errPhone.style.display="none";
+
+return ok;
+}
+
+// SUBMIT
+form.addEventListener("submit",e=>{
+e.preventDefault();
+if(!validate()) return;
+
+btn.classList.add("loading");
+
+setTimeout(()=>{
+btn.classList.remove("loading");
+success.style.display="block";
+localStorage.clear();
+form.reset();
+update();
+},1200);
+});
+
+// THEME
+function toggleTheme(){
+document.body.classList.toggle("light");
+}
+</script>
+
+</body>
+</html>
